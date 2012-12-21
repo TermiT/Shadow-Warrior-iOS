@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>controls.aimsensitivity</key>
+	<real>0.4205202460289001</real>
+	<key>controls.invertyaxis</key>
+	<false/>
+	<key>controls.lefthanded</key>
+	<false/>
+	<key>controls.scheme</key>
+	<string>ScreenTap</string>
+	<key>controls.scheme.BaseControlScheme</key>
+	<dict>
+		<key>tag1001</key>
+		<string>{{847, 624}, {48, 48}}</string>
+		<key>tag1002</key>
+		<string>{{760, 602}, {38, 38}}</string>
+		<key>tag1003</key>
+		<string>{{936, 568}, {38, 38}}</string>
+		<key>tag1004</key>
+		<string>{{939, 667}, {38, 38}}</string>
+		<key>tag1005</key>
+		<string>{{760, 698}, {38, 38}}</string>
+	</dict>
+	<key>controls.scheme.Classic</key>
+	<dict>
+		<key>tag1001</key>
+		<string>{{852.5, 603.5}, {48, 48}}</string>
+		<key>tag1002</key>
+		<string>{{763, 568.5}, {38, 38}}</string>
+		<key>tag1003</key>
+		<string>{{941.5, 545.5}, {38, 38}}</string>
+		<key>tag1004</key>
+		<string>{{941.5, 659}, {38, 38}}</string>
+		<key>tag1005</key>
+		<string>{{764.5, 675}, {38, 38}}</string>
+		<key>tag1006</key>
+		<string>{{78, 580.5}, {100, 100}}</string>
+	</dict>
+	<key>controls.scheme.ScreenTap</key>
+	<dict>
+		<key>tag1001</key>
+		<string>{{852.5, 603.5}, {48, 48}}</string>
+		<key>tag1002</key>
+		<string>{{763, 568.5}, {38, 38}}</string>
+		<key>tag1003</key>
+		<string>{{941.5, 545.5}, {38, 38}}</string>
+		<key>tag1004</key>
+		<string>{{941.5, 659}, {38, 38}}</string>
+		<key>tag1005</key>
+		<string>{{764.5, 675}, {38, 38}}</string>
+	</dict>
+	<key>controls.scheme.VirtualSticks</key>
+	<dict>
+		<key>tag1001</key>
+		<string>{{860.5, 501.5}, {48, 48}}</string>
+		<key>tag1002</key>
+		<string>{{757.5, 616}, {38, 38}}</string>
+		<key>tag1003</key>
+		<string>{{779.5, 545.5}, {38, 38}}</string>
+		<key>tag1004</key>
+		<string>{{776.5, 687.5}, {38, 38}}</string>
+		<key>tag1005</key>
+		<string>{{867.5, 716}, {38, 38}}</string>
+		<key>tag1006</key>
+		<string>{{95, 593}, {100, 100}}</string>
+		<key>tag1007</key>
+		<string>{{836, 587}, {100, 100}}</string>
+	</dict>
+	<key>controls.verticalaim</key>
+	<true/>
+	<key>game.crosshair</key>
+	<true/>
+	<key>game.hudtransparency</key>
+	<real>1</real>
+	<key>game.lastlevel</key>
+	<integer>1</integer>
+	<key>game.weaponautoswitch</key>
+	<true/>
+	<key>video.voxels</key>
+	<false/>
+	<key>video.retroGraphics</key>
+	<false/>
+	<key>music.enable</key>
+	<true/>
+</dict>
+</plist>

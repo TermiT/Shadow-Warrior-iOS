@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>controls.scheme.Classic</key>
+	<dict>
+		<key>tag1001</key>
+		<string>{{357, 222}, {48, 48}}</string>
+		<key>tag1002</key>
+		<string>{{302, 192}, {38, 38}}</string>
+		<key>tag1003</key>
+		<string>{{421.5, 188}, {38, 38}}</string>
+		<key>tag1004</key>
+		<string>{{425, 277.5}, {38, 38}}</string>
+		<key>tag1005</key>
+		<string>{{303.5, 276}, {38, 38}}</string>
+		<key>tag1006</key>
+		<string>{{11.5, 196.5}, {100, 100}}</string>
+	</dict>
+	<key>controls.scheme.ScreenTap</key>
+	<dict>
+		<key>tag1001</key>
+		<string>{{357, 222}, {48, 48}}</string>
+		<key>tag1002</key>
+		<string>{{302, 192}, {38, 38}}</string>
+		<key>tag1003</key>
+		<string>{{421.5, 188}, {38, 38}}</string>
+		<key>tag1004</key>
+		<string>{{425, 277.5}, {38, 38}}</string>
+		<key>tag1005</key>
+		<string>{{303.5, 276}, {38, 38}}</string>
+		<key>tag1006</key>
+		<string>{{11.5, 196.5}, {100, 100}}</string>
+	</dict>
+	<key>controls.scheme.VirtualSticks</key>
+	<dict>
+		<key>tag1001</key>
+		<string>{{316, 215}, {48, 48}}</string>
+		<key>tag1002</key>
+		<string>{{344.5, 167.5}, {38, 38}}</string>
+		<key>tag1003</key>
+		<string>{{433.5, 161}, {38, 38}}</string>
+		<key>tag1004</key>
+		<string>{{434, 278}, {38, 38}}</string>
+		<key>tag1005</key>
+		<string>{{346, 276.5}, {38, 38}}</string>
+		<key>tag1006</key>
+		<string>{{21, 191.5}, {100, 100}}</string>
+		<key>tag1007</key>
+		<string>{{365, 188.5}, {100, 100}}</string>
+	</dict>
+</dict>
+</plist>
