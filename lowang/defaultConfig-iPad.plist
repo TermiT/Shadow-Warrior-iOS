@@ -5,7 +5,7 @@
 	<key>controls.scheme.Classic</key>
 	<dict>
 		<key>tag1001</key>
-		<string>{{852.5, 603.5}, {48, 48}}</string>
+		<string>{{823, 586.5}, {96, 96}}</string>
 		<key>tag1002</key>
 		<string>{{763, 568.5}, {38, 38}}</string>
 		<key>tag1003</key>
@@ -20,7 +20,7 @@
 	<key>controls.scheme.ScreenTap</key>
 	<dict>
 		<key>tag1001</key>
-		<string>{{852.5, 603.5}, {48, 48}}</string>
+		<string>{{827.5, 581}, {96, 96}}</string>
 		<key>tag1002</key>
 		<string>{{763, 568.5}, {38, 38}}</string>
 		<key>tag1003</key>
@@ -33,7 +33,7 @@
 	<key>controls.scheme.VirtualSticks</key>
 	<dict>
 		<key>tag1001</key>
-		<string>{{860.5, 501.5}, {48, 48}}</string>
+		<string>{{842, 470.5}, {96, 96}}</string>
 		<key>tag1002</key>
 		<string>{{757.5, 616}, {38, 38}}</string>
 		<key>tag1003</key>

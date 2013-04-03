@@ -20,7 +20,11 @@
     if ((self = [super init]) != nil) {
         CGRect rect;
 
-        rect = CGRectMake(200, 200, 48, 48);
+        if (IS_IPAD()) {
+            rect = CGRectMake(200, 200, 96, 96);
+        } else {
+            rect = CGRectMake(200, 200, 64, 64);
+        }
         _attackButton = [[VCFreelook alloc] initWithFrame:rect
                                            andNormalImage:[UIImage imageNamed:@"button_attack.png"]
                                       andHighlightedImage:nil];

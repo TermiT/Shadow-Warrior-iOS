@@ -36,21 +36,19 @@
 // To avoid making mistakes map plist entries to macroses as below and use them
 // instead of keys itself.
 //
-#define kInAppFullGame @"com.blah"
+#define kInAppFullGame          @"com.generalarcade.lowang.fullgame"
+#define kInAppTwinDragon        @"com.generalarcade.lowang.twindragon"
+#define kInAppWantonDestruction @"com.generalarcade.lowang.wantondestruction"
 
 #ifndef SERVER_PRODUCT_MODEL
-    #define SERVER_PRODUCT_MODEL 0
+    #define SERVER_PRODUCT_MODEL 1
 #endif
 
 #ifndef OWN_SERVER
-    #define OWN_SERVER nil
+    #define OWN_SERVER @"https://api.generalarcade.com/inapp"
 #endif
 
 #ifndef REVIEW_ALLOWED
     #define REVIEW_ALLOWED 0
 #endif
 
-#warning Shared Secret Missing Ignore this warning if you don't use auto-renewable subscriptions
-#ifndef kSharedSecret
-    #define kSharedSecret @"<FILL IN YOUR SHARED SECRET HERE>"
-#endif

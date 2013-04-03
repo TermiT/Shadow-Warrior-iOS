@@ -20,4 +20,7 @@ Sys_ConfigFile(void);
 const char*
 Sys_GetDocumentsDir(void);
 
+const char*
+Sys_GetGameDir(void);
+
 #endif /* SYS_IPHONE_H */

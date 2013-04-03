@@ -6056,7 +6056,9 @@ DoPlayerBeginRemoteOperate(PLAYERp pp, SECTOR_OBJECTp sop)
     
     RESET(pp->Flags, PF_CRAWLING|PF_JUMPING|PF_FALLING|PF_LOCK_CRAWL);
     if (sp->picnum == 1094) // CAR REMOTE SPRITE
-        SET(pp->Flags2, PF2_CAR_LOCK);
+        if (Level != 19) {
+            SET(pp->Flags2, PF2_CAR_LOCK);
+        }
 
     DoPlayerOperateMatch(pp, TRUE);
     

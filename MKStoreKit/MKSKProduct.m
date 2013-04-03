@@ -33,6 +33,13 @@
 
 #import "NSData+MKBase64.h"
 
+#include "curl.h"
+#include "ca.cer.h"
+#include "client.p12.h"
+#include <stdio.h>
+#include <string.h>
+
+
 #if ! __has_feature(objc_arc)
 #error MKStoreKit is ARC only. Either turn on ARC for the project or use -fobjc-arc flag
 #endif
@@ -49,81 +56,81 @@ static NSMutableData *sDataFromConnection;
 @implementation MKSKProduct
 
 +(NSString*) deviceId {
-  
+    
 #if TARGET_OS_IPHONE
-  NSString *uniqueID;
-  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-  id uuid = [defaults objectForKey:@"uniqueID"];
-  if (uuid)
-    uniqueID = (NSString *)uuid;
-  else {
-    CFUUIDRef cfUuid = CFUUIDCreate(NULL);
-    CFStringRef cfUuidString = CFUUIDCreateString(NULL, cfUuid);
-    CFRelease(cfUuid);
-    uniqueID = (__bridge NSString *)cfUuidString;
-    [defaults setObject:uniqueID forKey:@"uniqueID"];
-    CFRelease(cfUuidString);
-  }
-  
-  return uniqueID;
-#elif TARGET_OS_MAC 
-  
-  kern_return_t			 kernResult;
+    NSString *uniqueID;
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    id uuid = [defaults objectForKey:@"uniqueID"];
+    if (uuid)
+        uniqueID = (NSString *)uuid;
+    else {
+        CFUUIDRef cfUuid = CFUUIDCreate(NULL);
+        CFStringRef cfUuidString = CFUUIDCreateString(NULL, cfUuid);
+        CFRelease(cfUuid);
+        uniqueID = (__bridge NSString *)cfUuidString;
+        [defaults setObject:uniqueID forKey:@"uniqueID"];
+        CFRelease(cfUuidString);
+    }
+    
+    return uniqueID;
+#elif TARGET_OS_MAC
+    
+    kern_return_t			 kernResult;
 	mach_port_t			   master_port;
 	CFMutableDictionaryRef	matchingDict;
 	io_iterator_t			 iterator;
 	io_object_t			   service;
 	CFDataRef				 macAddress = nil;
-  
+    
 	kernResult = IOMasterPort(MACH_PORT_NULL, &master_port);
 	if (kernResult != KERN_SUCCESS) {
 		printf("IOMasterPort returned %d\n", kernResult);
 		return nil;
 	}
-  
+    
 	matchingDict = IOBSDNameMatching(master_port, 0, "en0");
 	if(!matchingDict) {
 		printf("IOBSDNameMatching returned empty dictionary\n");
 		return nil;
 	}
-  
+    
 	kernResult = IOServiceGetMatchingServices(master_port, matchingDict, &iterator);
 	if (kernResult != KERN_SUCCESS) {
 		printf("IOServiceGetMatchingServices returned %d\n", kernResult);
 		return nil;
 	}
-  
+    
 	while((service = IOIteratorNext(iterator)) != 0)
 	{
 		io_object_t		parentService;
-    
+        
 		kernResult = IORegistryEntryGetParentEntry(service, kIOServicePlane, &parentService);
 		if(kernResult == KERN_SUCCESS)
 		{
-      if(macAddress)
-        CFRelease(macAddress);
+            if(macAddress)
+                CFRelease(macAddress);
 			macAddress = IORegistryEntryCreateCFProperty(parentService, CFSTR("IOMACAddress"), kCFAllocatorDefault, 0);
 			IOObjectRelease(parentService);
 		}
 		else {
 			printf("IORegistryEntryGetParentEntry returned %d\n", kernResult);
 		}
-    
+        
 		IOObjectRelease(service);
 	}
-  
+    
 	return [[NSString alloc] initWithData:(__bridge NSData*) macAddress encoding:NSASCIIStringEncoding];
 #endif
 }
 
 -(id) initWithProductId:(NSString*) aProductId receiptData:(NSData*) aReceipt
 {
-  if((self = [super init]))
-  {
-    self.productId = aProductId;
-    self.receipt = aReceipt;
-  }
-  return self;
+    if((self = [super init]))
+    {
+        self.productId = aProductId;
+        self.receipt = aReceipt;
+    }
+    return self;
 }
 
 #pragma mark -
@@ -135,65 +142,140 @@ static NSMutableData *sDataFromConnection;
                           onComplete:(void (^)(NSNumber*)) completionBlock
                              onError:(void (^)(NSError*)) errorBlock
 {
-  if(REVIEW_ALLOWED)
-  {
-    onReviewRequestVerificationSucceeded = [completionBlock copy];
-    onReviewRequestVerificationFailed = [errorBlock copy];
-    
-    NSString *uniqueID = [self deviceId];
-    // check udid and featureid with developer's server
+    if(REVIEW_ALLOWED)
+    {
+        onReviewRequestVerificationSucceeded = [completionBlock copy];
+        onReviewRequestVerificationFailed = [errorBlock copy];
+        
+        NSString *uniqueID = [self deviceId];
+        // check udid and featureid with developer's server
 		
-    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@", OWN_SERVER, @"featureCheck.php"]];
-    
-    NSMutableURLRequest *theRequest = [NSMutableURLRequest requestWithURL:url 
-                                                              cachePolicy:NSURLRequestReloadIgnoringCacheData 
-                                                          timeoutInterval:60];
-    
-    [theRequest setHTTPMethod:@"POST"];		
-    [theRequest setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-    
-    NSString *postData = [NSString stringWithFormat:@"productid=%@&udid=%@", productId, uniqueID];
-    
-    NSString *length = [NSString stringWithFormat:@"%d", [postData length]];	
-    [theRequest setValue:length forHTTPHeaderField:@"Content-Length"];	
-    
-    [theRequest setHTTPBody:[postData dataUsingEncoding:NSASCIIStringEncoding]];
-    
-    sConnection = [NSURLConnection connectionWithRequest:theRequest delegate:self];    
-    [sConnection start];	
-  }
-  else
-  {
-    completionBlock([NSNumber numberWithBool:NO]);
-  }
+        NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@", OWN_SERVER, @"featureCheck.php"]];
+        
+        NSMutableURLRequest *theRequest = [NSMutableURLRequest requestWithURL:url
+                                                                  cachePolicy:NSURLRequestReloadIgnoringCacheData
+                                                              timeoutInterval:60];
+        
+        [theRequest setHTTPMethod:@"POST"];
+        [theRequest setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+        
+        NSString *postData = [NSString stringWithFormat:@"productid=%@&udid=%@", productId, uniqueID];
+        
+        NSString *length = [NSString stringWithFormat:@"%d", [postData length]];
+        [theRequest setValue:length forHTTPHeaderField:@"Content-Length"];
+        
+        [theRequest setHTTPBody:[postData dataUsingEncoding:NSASCIIStringEncoding]];
+        
+        sConnection = [NSURLConnection connectionWithRequest:theRequest delegate:self];
+        [sConnection start];
+    }
+    else
+    {
+        completionBlock([NSNumber numberWithBool:NO]);
+    }
 }
+
+const char* generateRandomString() {
+    NSString *guid = [[NSProcessInfo processInfo] globallyUniqueString];
+    return [guid UTF8String];
+}
+
+const char* Sys_PutStringToRandomFile(const unsigned char* string, size_t size) {
+    static char data[1024] = { 0 };
+    NSString * path = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithUTF8String:generateRandomString()]];
+    strcpy(data, path.UTF8String);
+    FILE *file;
+    file = fopen(data,"w+");
+    fwrite(string, 1, size, file);
+    fclose(file);
+    return data;
+}
+
+
+size_t static write_callback_func(void *buffer,
+                                  size_t size,
+                                  size_t nmemb,
+                                  void *userp)
+{
+    char **response_ptr =  (char**)userp;
+    
+    /* assuming the response is a string */
+    *response_ptr = strndup(buffer, (size_t)(size *nmemb));
+    
+}
+
 
 - (void) verifyReceiptOnComplete:(void (^)(void)) completionBlock
                          onError:(void (^)(NSError*)) errorBlock
 {
-  self.onReceiptVerificationSucceeded = completionBlock;
-  self.onReceiptVerificationFailed = errorBlock;
-  
-  NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%@/%@", OWN_SERVER, @"verifyProduct.php"]];
-	
-	NSMutableURLRequest *theRequest = [NSMutableURLRequest requestWithURL:url 
-                                                            cachePolicy:NSURLRequestReloadIgnoringCacheData 
-                                                        timeoutInterval:60];
-	
-	[theRequest setHTTPMethod:@"POST"];		
-	[theRequest setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-	
+    self.onReceiptVerificationSucceeded = completionBlock;
+    self.onReceiptVerificationFailed = errorBlock;
+    
+    NSString *url = [NSString stringWithFormat:@"%@/%@", OWN_SERVER, @"verifyProduct.php"];
+    
 	NSString *receiptDataString = [self.receipt base64EncodedString];
-  
-	NSString *postData = [NSString stringWithFormat:@"receiptdata=%@", receiptDataString];
-	
-	NSString *length = [NSString stringWithFormat:@"%d", [postData length]];	
-	[theRequest setValue:length forHTTPHeaderField:@"Content-Length"];	
-	
-	[theRequest setHTTPBody:[postData dataUsingEncoding:NSASCIIStringEncoding]];
-	
-  self.theConnection = [NSURLConnection connectionWithRequest:theRequest delegate:self];    
-  [self.theConnection start];	
+    
+    NSString *postData = [NSString stringWithFormat:@"receiptdata=%@", receiptDataString];
+    
+    char client12[1024] = {0};
+    char cacer[1024] = {0};
+    char *response = NULL;
+    
+    strcpy(client12, Sys_PutStringToRandomFile(client_p12, sizeof(client_p12)));
+    strcpy(cacer, Sys_PutStringToRandomFile(ca_cer, sizeof(ca_cer)));
+    
+    curl_global_init(CURL_GLOBAL_ALL);
+    CURL* handle = curl_easy_init();
+    curl_easy_setopt(handle, CURLOPT_SSLENGINE_DEFAULT, 1);
+    curl_easy_setopt(handle, CURLOPT_URL, url.UTF8String);
+    curl_easy_setopt(handle, CURLOPT_SSL_VERIFYHOST, 2);
+    curl_easy_setopt(handle, CURLOPT_POST, 1);
+    curl_easy_setopt(handle, CURLOPT_POSTFIELDS, postData.UTF8String);
+    curl_easy_setopt(handle, CURLOPT_SSLCERTTYPE, "P12");
+    curl_easy_setopt(handle, CURLOPT_SSLCERT, client12);
+    curl_easy_setopt(handle, CURLOPT_SSLCERTPASSWD, "123456");
+    curl_easy_setopt(handle, CURLOPT_CAINFO, cacer);
+    curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 1);
+    curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_callback_func);
+    curl_easy_setopt(handle, CURLOPT_WRITEDATA, &response);
+    /*CURLcode res = */curl_easy_perform(handle);
+    
+//    if(res != CURLE_OK)
+//        fprintf(stderr, "curl_easy_perform() failed: %s\n",
+//                curl_easy_strerror(res));
+    
+    curl_easy_cleanup(handle);
+    curl_global_cleanup();
+    unlink(client12);
+    unlink(cacer);
+    
+    if (response == NULL) {
+        if(self.onReceiptVerificationFailed)
+        {
+            self.onReceiptVerificationFailed(nil);
+            self.onReceiptVerificationFailed = nil;
+        }
+        return;
+    }
+    
+    NSString * responseString = [NSString stringWithUTF8String:response];
+    
+	if([responseString isEqualToString:@"YES"])
+	{
+        if(self.onReceiptVerificationSucceeded)
+        {
+            self.onReceiptVerificationSucceeded();
+            self.onReceiptVerificationSucceeded = nil;
+        }
+	}
+    else
+    {
+        if(self.onReceiptVerificationFailed)
+        {
+            self.onReceiptVerificationFailed(nil);
+            self.onReceiptVerificationFailed = nil;
+        }
+    }
 }
 
 
@@ -202,8 +284,8 @@ static NSMutableData *sDataFromConnection;
 
 - (void)connection:(NSURLConnection *)connection
 didReceiveResponse:(NSURLResponse *)response
-{	
-  self.dataFromConnection = [NSMutableData data];
+{
+    self.dataFromConnection = [NSMutableData data];
 }
 
 - (void)connection:(NSURLConnection *)connection
@@ -214,50 +296,50 @@ didReceiveResponse:(NSURLResponse *)response
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
-  NSString *responseString = [[NSString alloc] initWithData:self.dataFromConnection 
-                                                   encoding:NSASCIIStringEncoding];
-  responseString = [responseString stringByTrimmingCharactersInSet:
-                    [NSCharacterSet whitespaceAndNewlineCharacterSet]];
-  self.dataFromConnection = nil;
-	if([responseString isEqualToString:@"YES"])		
+    NSString *responseString = [[NSString alloc] initWithData:self.dataFromConnection
+                                                     encoding:NSASCIIStringEncoding];
+    responseString = [responseString stringByTrimmingCharactersInSet:
+                      [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    self.dataFromConnection = nil;
+	if([responseString isEqualToString:@"YES"])
 	{
-    if(self.onReceiptVerificationSucceeded)
-    {
-      self.onReceiptVerificationSucceeded();
-      self.onReceiptVerificationSucceeded = nil;
-    }
+        if(self.onReceiptVerificationSucceeded)
+        {
+            self.onReceiptVerificationSucceeded();
+            self.onReceiptVerificationSucceeded = nil;
+        }
 	}
-  else
-  {
-    if(self.onReceiptVerificationFailed)
+    else
     {
-      self.onReceiptVerificationFailed(nil);
-      self.onReceiptVerificationFailed = nil;
+        if(self.onReceiptVerificationFailed)
+        {
+            self.onReceiptVerificationFailed(nil);
+            self.onReceiptVerificationFailed = nil;
+        }
     }
-  }
 	
-  
+    
 }
 
 
 - (void)connection:(NSURLConnection *)connection
   didFailWithError:(NSError *)error
 {
-  
-  self.dataFromConnection = nil;
-  if(self.onReceiptVerificationFailed)
-  {
-    self.onReceiptVerificationFailed(nil);
-    self.onReceiptVerificationFailed = nil;
-  }
+    
+    self.dataFromConnection = nil;
+    if(self.onReceiptVerificationFailed)
+    {
+        self.onReceiptVerificationFailed(nil);
+        self.onReceiptVerificationFailed = nil;
+    }
 }
 
 
 
 + (void)connection:(NSURLConnection *)connection
 didReceiveResponse:(NSURLResponse *)response
-{	
-  sDataFromConnection = [[NSMutableData alloc] init];
+{
+    sDataFromConnection = [[NSMutableData alloc] init];
 }
 
 + (void)connection:(NSURLConnection *)connection
@@ -268,40 +350,40 @@ didReceiveResponse:(NSURLResponse *)response
 
 + (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
-  NSString *responseString = [[NSString alloc] initWithData:sDataFromConnection 
-                                                   encoding:NSASCIIStringEncoding];
-  responseString = [responseString stringByTrimmingCharactersInSet:
-                    [NSCharacterSet whitespaceAndNewlineCharacterSet]];
-  sDataFromConnection = nil;
-  
-	if([responseString isEqualToString:@"YES"])		
-	{
-    if(onReviewRequestVerificationSucceeded)
-    {
-      onReviewRequestVerificationSucceeded();
-      onReviewRequestVerificationFailed = nil;
-    }
-	}
-  else
-  {
-    if(onReviewRequestVerificationFailed)
-      onReviewRequestVerificationFailed(nil);
+    NSString *responseString = [[NSString alloc] initWithData:sDataFromConnection
+                                                     encoding:NSASCIIStringEncoding];
+    responseString = [responseString stringByTrimmingCharactersInSet:
+                      [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    sDataFromConnection = nil;
     
-    onReviewRequestVerificationFailed = nil;
-  }
+	if([responseString isEqualToString:@"YES"])
+	{
+        if(onReviewRequestVerificationSucceeded)
+        {
+            onReviewRequestVerificationSucceeded();
+            onReviewRequestVerificationFailed = nil;
+        }
+	}
+    else
+    {
+        if(onReviewRequestVerificationFailed)
+            onReviewRequestVerificationFailed(nil);
+        
+        onReviewRequestVerificationFailed = nil;
+    }
 	
-  
+    
 }
 
 + (void)connection:(NSURLConnection *)connection
   didFailWithError:(NSError *)error
 {
-  sDataFromConnection = nil;
-  
-  if(onReviewRequestVerificationFailed)
-  {
-    onReviewRequestVerificationFailed(nil);    
-    onReviewRequestVerificationFailed = nil;
-  }
+    sDataFromConnection = nil;
+    
+    if(onReviewRequestVerificationFailed)
+    {
+        onReviewRequestVerificationFailed(nil);    
+        onReviewRequestVerificationFailed = nil;
+    }
 }
 @end

@@ -2,6 +2,10 @@
 #import "LWGameInstance.h"
 #import "MKStoreManager.h"
 #include "sys_iphone.h"
+#ifdef TESTING
+#import "TestFlight.h"
+#endif
+
 
 LWGameInstance *gameInstance;
 LWConfig *gameConfig;
@@ -26,6 +30,9 @@ CGSize screenSize;
 }
 
 - (void)applicationDidFinishLaunching:(UIApplication *)application {
+    #ifdef TESTING
+    [TestFlight setDeviceIdentifier:[[UIDevice currentDevice] uniqueIdentifier]];
+    #endif
     iphone_initLock();
     [self initGlobals];
     
@@ -41,14 +48,9 @@ CGSize screenSize;
 
     [window makeKeyAndVisible];
     [MKStoreManager sharedManager];
-#ifdef TESTING
-    //[[MKStoreManager sharedManager] removeAllKeychainData];
-#endif
+    
     extern int isFullGame;
     isFullGame = (int)[MKStoreManager isFeaturePurchased:kInAppFullGame];
-#ifdef REVIEWERS
-    isFullGame = 1;
-#endif
 }
 
 

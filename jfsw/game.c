@@ -2999,7 +2999,8 @@ Control(VOID)
 {
     
     InitGame();
-    
+    iphone_notifyEngineInitialized();
+
     MONO_PRINT("InitGame done");
     MNU_InitMenus();
     InGame = TRUE;
@@ -3278,7 +3279,10 @@ RunLevel(VOID)
 		handleevents();
 		OSD_DispatchQueued();
         
-		if (quitevent) QuitFlag = TRUE;
+		if (quitevent) {
+            QuitFlag = TRUE;
+            quitevent = 0;
+        }
         
         MoveLoop();
         

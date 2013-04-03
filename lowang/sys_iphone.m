@@ -18,11 +18,17 @@ const char* Sys_GetResourceDir(void) {
 }
 
 const char* Sys_GetGameDir(void) {
+    const char* Sys_GetDocumentsDir(void);
+    static char data[MAX_PATH] = { 0 };
+    strcpy(data, (const char*)Sys_GetDocumentsDir());
     switch (game_type) {
         case GAME_WANTON_DESTRUCTION:
-            return NULL;
+            strcat(data, GAME_WANTON_DESTRUCTION_DIR);
+            printf("Data %s", data);
+            return data;
         case GAME_TWIN_DRAGON:
-            return NULL;
+            strcat(data, GAME_TWIN_DRAGON_DIR);
+            return data;
         default:
             break;
     }

@@ -48,6 +48,12 @@ NSString* schemeKey(NSString *schemeName) {
     return [[NSBundle mainBundle] pathForResource:@"defaultConfig-iPhone" ofType:@"plist"];
 }
 
+- (void) resetControls {
+    [self setSchemeConfig:@"Classic" config:nil];
+    [self setSchemeConfig:@"ScreenTap" config:nil];
+    [self setSchemeConfig:@"VirtualSticks" config:nil];
+}
+
 - (void)registerDefaults {
     NSDictionary *di_def = [NSDictionary dictionaryWithContentsOfFile:[self deviceIndependedDefaultConfigPath]];
     NSDictionary *dd_def =[NSDictionary dictionaryWithContentsOfFile:[self deviceDependedDefaultConfigPath]];
@@ -82,6 +88,15 @@ NSString* schemeKey(NSString *schemeName) {
 
 - (void)setAimSensitivity:(float)aimSensitivity {
     [[NSUserDefaults standardUserDefaults] setFloat:aimSensitivity forKey:@"controls.aimsensitivity"];
+    [self sync];
+}
+
+- (int)saveGameType {
+    return [[NSUserDefaults standardUserDefaults] integerForKey:@"game.save.gametype"];
+}
+
+- (void)setSaveGameType:(int)saveGameType {
+    [[NSUserDefaults standardUserDefaults] setInteger:saveGameType forKey:@"game.save.gametype"];
     [self sync];
 }
 
@@ -151,13 +166,6 @@ NSString* schemeKey(NSString *schemeName) {
 - (void)setEnableVerticalAim:(BOOL)enableVerticalAim {
     [[NSUserDefaults standardUserDefaults] setBool:enableVerticalAim forKey:@"controls.verticalaim"];
     [self sync];
-}
-
-- (void)setLastLevel:(int)lastLevel {
-    if (lastLevel < 21) {
-        [[NSUserDefaults standardUserDefaults] setInteger:lastLevel forKey:@"game.lastlevel"];
-        [self sync];
-    }
 }
 
 - (NSDictionary *)schemeConfig:(NSString *)schemeName {

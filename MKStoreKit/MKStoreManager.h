@@ -66,6 +66,8 @@
 // convenience methods
 //returns a dictionary with all prices for identifiers
 - (NSMutableDictionary *)pricesDictionary;
+- (NSDictionary *)titlesDictionary;
+- (NSDictionary *)descriptionsDictionary;
 - (NSMutableArray*) purchasableObjectsDescription;
 
 // use this method to start a purchase

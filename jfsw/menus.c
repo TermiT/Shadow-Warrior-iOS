@@ -3849,35 +3849,34 @@ SetupMenu(void)
 #define MNU_SENSITIVITY 10              // The menu's mouse sensitivity, should be real low
 
 void MNU_DoMenu( CTLType type, PLAYERp pp )
-    {
+{
     BOOL resetitem;
     UCHAR key;
     long zero = 0;
     static int handle2 = 0;
     static long limitmove=0;
     static BOOL select_held=FALSE;
-        
-    iphone_notifyEngineInitialized();
-
+    
+    
     resetitem = TRUE;
     
     if (cust_callback != NULL)
-        {
+    {
         cust_callback(cust_callback_call, cust_callback_item);
         return;
-        }
-
+    }
+    
     //ControlPanelType = type;
     SetupMenu();
-
+    
     // Zero out the input structure
     mnu_input.button0 = mnu_input.button1 = FALSE;
     mnu_input.dir = dir_None;
-
+    
     // should not get input if you are editing a save game slot
     if(totalclock < limitmove) limitmove = totalclock;
     if (!MenuInputMode)
-        {
+    {
         UserInput tst_input;
         BOOL select_held = FALSE;
         
@@ -3887,114 +3886,114 @@ void MNU_DoMenu( CTLType type, PLAYERp pp )
         tst_input.dir = dir_None;
         
         if(!select_held)
-            {
+        {
             CONTROL_GetUserInput(&tst_input);
             mnu_input_buffered.dir = tst_input.dir;
-            }
-    
-        if(mnu_input_buffered.button0 || mnu_input_buffered.button1)    
+        }
+        
+        if(mnu_input_buffered.button0 || mnu_input_buffered.button1)
+        {
+            if(tst_input.button0 == mnu_input_buffered.button0 &&
+               tst_input.button1 == mnu_input_buffered.button1)
             {
-            if(tst_input.button0 == mnu_input_buffered.button0 && 
-               tst_input.button1 == mnu_input_buffered.button1) 
-                {
                 select_held = TRUE;
-                } 
-                else
+            }
+            else
                 if(totalclock - limitmove > 7)
                 {
-                mnu_input.button0 = mnu_input_buffered.button0;
-                mnu_input.button1 = mnu_input_buffered.button1;
-
-                mnu_input_buffered.button0 = tst_input.button0;
-                mnu_input_buffered.button1 = tst_input.button1;
+                    mnu_input.button0 = mnu_input_buffered.button0;
+                    mnu_input.button1 = mnu_input_buffered.button1;
+                    
+                    mnu_input_buffered.button0 = tst_input.button0;
+                    mnu_input_buffered.button1 = tst_input.button1;
                 }
-            } else
-            {
-            select_held = FALSE;    
+        } else
+        {
+            select_held = FALSE;
             mnu_input_buffered.button0 = tst_input.button0;
             mnu_input_buffered.button1 = tst_input.button1;
-            }
-
+        }
+        
         if(totalclock - limitmove > 7 && !select_held)
-            {
+        {
             mnu_input.dir = mnu_input_buffered.dir;
-
+            
             if (mnu_input.dir != dir_None)
                 if(!FX_SoundActive(handle2))
                     handle2 = PlaySound(DIGI_STAR,&zero,&zero,&zero,v3df_dontpan);
-
+            
             limitmove = totalclock;
             mnu_input_buffered.dir = dir_None;
-            }
         }
-
+    }
+    
     if (mnu_input.dir == dir_North)
-        {
+    {
         MNU_PrevItem();
         resetitem = TRUE;
-        }
-    else 
-    if (mnu_input.dir == dir_South)
-        {
-        MNU_NextItem();
-        resetitem = TRUE;
-        }
-    else 
-    if (mnu_input.button0)
-        {
-        static int handle5=0;
-        if(!FX_SoundActive(handle5))
-            handle5 = PlaySound(DIGI_SWORDSWOOSH,&zero,&zero,&zero,v3df_dontpan);
-        KB_ClearKeysDown();
-        MNU_DoItem();
-        resetitem = TRUE;
-        }
-    else 
-    if (mnu_input.dir == dir_West
-        && currentmenu->items[currentmenu->cursor].type == mt_slider)
-        {
-        MNU_DoSlider(-1, &currentmenu->items[currentmenu->cursor], FALSE);
-        resetitem = TRUE;
-        }
-    else 
-    if (mnu_input.dir == dir_East
-        && currentmenu->items[currentmenu->cursor].type == mt_slider)
-        {
-        MNU_DoSlider(1, &currentmenu->items[currentmenu->cursor], FALSE);
-        resetitem = TRUE;
-        }
-    else 
-    if (mnu_input.button1)
-        {
-        static int handle3=0;
-        if(!FX_SoundActive(handle3))
-            handle3 = PlaySound(DIGI_SWORDSWOOSH,&zero,&zero,&zero,v3df_dontpan);
-        MNU_UpLevel();
-        resetitem = TRUE;
-        }
-    else 
-    if (MNU_DoHotkey())
-        {
-        static int handle4=0;
-        if(!FX_SoundActive(handle4))
-            handle4 = PlaySound(DIGI_STAR,&zero,&zero,&zero,v3df_dontpan);
-        resetitem = TRUE;
-        mnu_input_buffered.button0 = mnu_input_buffered.button1 = FALSE;
-        }
+    }
     else
-        resetitem = FALSE;
+        if (mnu_input.dir == dir_South)
+        {
+            MNU_NextItem();
+            resetitem = TRUE;
+        }
+        else
+            if (mnu_input.button0)
+            {
+                static int handle5=0;
+                if(!FX_SoundActive(handle5))
+                    handle5 = PlaySound(DIGI_SWORDSWOOSH,&zero,&zero,&zero,v3df_dontpan);
+                KB_ClearKeysDown();
+                MNU_DoItem();
+                resetitem = TRUE;
+            }
+            else
+                if (mnu_input.dir == dir_West
+                    && currentmenu->items[currentmenu->cursor].type == mt_slider)
+                {
+                    MNU_DoSlider(-1, &currentmenu->items[currentmenu->cursor], FALSE);
+                    resetitem = TRUE;
+                }
+                else
+                    if (mnu_input.dir == dir_East
+                        && currentmenu->items[currentmenu->cursor].type == mt_slider)
+                    {
+                        MNU_DoSlider(1, &currentmenu->items[currentmenu->cursor], FALSE);
+                        resetitem = TRUE;
+                    }
+                    else
+                        if (mnu_input.button1)
+                        {
+                            static int handle3=0;
+                            if(!FX_SoundActive(handle3))
+                                handle3 = PlaySound(DIGI_SWORDSWOOSH,&zero,&zero,&zero,v3df_dontpan);
+                            MNU_UpLevel();
+                            resetitem = TRUE;
+                        }
+                        else
+                            if (MNU_DoHotkey())
+                            {
+                                static int handle4=0;
+                                if(!FX_SoundActive(handle4))
+                                    handle4 = PlaySound(DIGI_STAR,&zero,&zero,&zero,v3df_dontpan);
+                                resetitem = TRUE;
+                                mnu_input_buffered.button0 = mnu_input_buffered.button1 = FALSE;
+                            }
+                            else
+                                resetitem = FALSE;
     
     // !FRANK! I added this because the old custom was only called for drawing
     // Needed one for drawing and moving.
     if (currentmenu->move_custom)
         currentmenu->move_custom(uc_setup, NULL);
-
+    
     if (resetitem)
-        {
+    {
         KB_ClearKeysDown();
         ResetKeys();
-        } 
     }
+}
 
 ////////////////////////////////////////////////
 //  Checks to see if we should be in menus

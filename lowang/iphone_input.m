@@ -91,7 +91,7 @@ void iphone_getinput(SW_PACKET *loc) {
     float velocity_y = clampf(total_velocity_y, max_velocity, -max_velocity);
 
     loc->angvel = (signed char) clamp((int) ((int)128*velocity_x/max_velocity), 127, -127);
-    if (!TEST(pp->Flags2, PF2_CAR_LOCK) && !centerView) {
+    if (!TEST(pp->Flags2, PF2_CAR_LOCK) && !centerView) { 
         loc->aimvel = verticalAimScale * (signed char) clamp((int) ((int)-128*velocity_y/max_velocity), 127, -127);
     } else {
         extern int polymost_update_3dview;

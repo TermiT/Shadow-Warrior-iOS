@@ -68,6 +68,10 @@ enum {
     GAME_QUIT = 999
 };
 
+#define GAME_WANTON_DESTRUCTION_DIR "/WD/"
+#define GAME_TWIN_DRAGON_DIR "/TD/"
+
+
 extern int game_type;
 
 extern game_settings_t iphone_settings;

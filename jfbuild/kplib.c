@@ -2659,8 +2659,8 @@ static long filnamcmp (const char *st0, const char *st1)
 	//[next hashindex/-1][next index/-1][zipnam index][zipseek][char filnam[?]\0]
 	//...
 #define KZHASHINITSIZE 8192
-static char *kzhashbuf = 0;
-static long kzhashead[256], kzhashpos, kzlastfnam, kzhashsiz;
+char *kzhashbuf = 0;
+long kzhashead[256], kzhashpos, kzlastfnam, kzhashsiz;
 
 static long kzcheckhashsiz (long siz)
 {

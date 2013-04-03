@@ -172,6 +172,7 @@ static void ptm_calculateid(const PTHead * pth, int extra, unsigned char id[16])
 		hightileid.flags = pth->flags & (PTH_CLAMPED);
 		hightileid.effects = (pth->palnum != pth->repldef->palnum)
 				? hictinting[pth->palnum].f : 0;
+        if (pth->repldef->filename == NULL) return;
 		strncpy(hightileid.filename, pth->repldef->filename, BMAX_PATH);
 		
 		md4once((unsigned char *) &hightileid, sizeof(hightileid), id);

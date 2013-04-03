@@ -169,7 +169,7 @@ void iphone_notifyEngineInitialized() {
     if (game_reloading) {
         game_reloading = 0;
     } else {
-        BOOL notified = NO;
+        static BOOL notified = NO;
         if (!notified) {
             notified = YES;
             dispatch_async(dispatch_get_main_queue(), ^{
@@ -585,10 +585,13 @@ void iphone_setPaused(int paused) {
 
 BOOL iphone_changeGameType(int gt) {
     extern char quitevent;
+    
     if (gt != game_type) {
         game_type = gt;
         quitevent = 1;
-        game_reloading = YES;
+        
+        game_reloading = 1;
+        
         return TRUE;
     }
     return FALSE;

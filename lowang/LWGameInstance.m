@@ -71,6 +71,7 @@ extern void GameThread_Run(void);
 
 }
 
+
 - (void)startGame:(int)levelno skill:(int)skill {
     CFRunLoopPerformBlock(gameRunLoop, (CFTypeRef) kCFRunLoopCommonModes,
                           ^{
@@ -222,6 +223,10 @@ void gltexapplyprops (void);
 
 - (void)setGameType:(int)game_type {
     if (iphone_changeGameType(game_type)) {
+//        CFRunLoopRunInMode(kCFRunLoopDefaultMode, 15.0, FALSE);
+        // remove next line later
+        gameConfig.enableVoxels = NO;
+        [self updateGameSettings];
         [self waitForReload];
     }
 }
@@ -233,7 +238,7 @@ runLoopDelay(NSTimeInterval delay) {
 
 - (void)waitForReload {
     while (game_reloading) {
-        CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.01, FALSE);
+        CFRunLoopRunInMode(kCFRunLoopDefaultMode, 1.0, FALSE);
     }
 }
 

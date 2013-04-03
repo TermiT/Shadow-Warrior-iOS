@@ -19,6 +19,7 @@ int scriptfile_getbraces(scriptfile *sf, char **braceend);
 
 scriptfile *scriptfile_fromfile(char *fn);
 scriptfile *scriptfile_fromstring(char *string);
+char * scripttxt_fromfile(char *file);
 void scriptfile_close(scriptfile *sf);
 int scriptfile_eof(scriptfile *sf);
 

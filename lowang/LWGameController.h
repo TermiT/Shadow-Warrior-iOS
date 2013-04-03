@@ -22,16 +22,26 @@
 - (void) presentAboutMenu;
 - (void) presentCoolStuffMenu;
 - (void) presentCreditsMenu;
+- (void) presentGameSelectMenu;
 - (void) startNewGame;
 - (void) setPaused;
 - (void) pmResumeGame;
 - (void) presentCheatsMenu;
 - (void) hideCheatMenu;
 
-- (void) presentStoreView;
+
+- (NSString *) futureIDForGameType:(NSUInteger)game;
+- (BOOL)isFeaturePurchased:(NSString *)featureID;
+- (void) buyFeature:(NSString *)featureID;
+- (void) presentStoreView:(NSUInteger)selectedGameIndex;
 - (void) hideStoreView;
 - (void) buyFullGame;
 - (void) restorePurchases;
+- (void) cancelAllDownloads;
+- (void) downloadBundle:(NSString *)featureID finished:(void(^)(void))finished;
+- (void)presentDownloadView:(NSString *)title;
+- (void)hideDownloadView;
+- (int)selectedGame;
 
 - (BOOL) isFullGame;
 

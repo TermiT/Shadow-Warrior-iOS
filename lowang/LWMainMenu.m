@@ -47,7 +47,7 @@
 }
 
 - (IBAction)newGameButtonClicked:(id)sender {
-    [self.gameController presentSkillSelectMenu];
+    [self.gameController presentGameSelectMenu];
 }
 
 - (IBAction)resumeButtonClicked:(id)sender {
@@ -66,7 +66,7 @@
 }
 
 - (IBAction)storeButtonClicked:(id)sender {
-    [self.gameController presentStoreView];
+    [self.gameController presentStoreView:GAME_SHADOW_WARRIOR];
 }
 
 

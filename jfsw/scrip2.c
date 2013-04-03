@@ -38,6 +38,7 @@ Prepared for public release: 03/28/2005 - Charlie Wiederhold, 3D Realms
 #include "sprite.h"
 #include "jsector.h"
 #include "parent.h"
+#include "sys_iphone.h"
 
 #define PATHSEPERATOR   '\\'
 
@@ -575,6 +576,9 @@ static struct {
 	{ "WPN_HOTHEAD_RING",   WPN_RING,    WM_DAMAGE },
 };
 
+
+
+
 // FIXME: yes, we are leaking memory here at the end of the program by not freeing anything
 void LoadCustomInfoFromScript(char *filename)
 {
@@ -582,10 +586,13 @@ void LoadCustomInfoFromScript(char *filename)
 	char *token;
 	char *braceend;
 	int curmap = -1;
+    
+    extern int game_type;
+    if (game_type == 0) return;
 
 	script = scriptfile_fromfile(filename);
 	if (!script) return;
-
+        
 	// predefine constants for some stuff to give convenience and eliminate the need for a 'define' directive
 	scriptfile_addsymbolvalue("INV_ARMOR",      1+InvDecl_Armor);
 	scriptfile_addsymbolvalue("INV_KEVLAR",     1+InvDecl_Kevlar);

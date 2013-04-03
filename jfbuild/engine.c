@@ -71,7 +71,7 @@ static long *lookups = NULL;
 static char lookupsalloctype = 255;
 long dommxoverlay = 1, beforedrawrooms = 1;
 
-static long oxdimen = -1, oviewingrange = -1, oxyaspect = -1;
+long oxdimen = -1, oviewingrange = -1, oxyaspect = -1;
 
 long curbrightness = 0, gammabrightness = 0;
 
@@ -512,7 +512,8 @@ long /*viewoffset,*/ frameoffset;
 static long nrx1[8], nry1[8], nrx2[8], nry2[8];	// JBF 20031206: Thanks Ken
 
 static long rxi[8], ryi[8], rzi[8], rxi2[8], ryi2[8], rzi2[8];
-static long xsi[8], ysi[8], *horizlookup=0, *horizlookup2=0, horizycent;
+static long xsi[8], ysi[8];
+long *horizlookup=0, *horizlookup2=0, horizycent;
 
 long globalposx, globalposy, globalposz, globalhoriz;
 short globalang, globalcursectnum;
@@ -4877,8 +4878,10 @@ static void initksqrt(void)
 //
 // dosetaspect
 //
+
 static void dosetaspect(void)
 {
+    //CRASH
 	long i, j, k, x, xinc,a;
 
 	if (xyaspect != oxyaspect)
@@ -5557,8 +5560,10 @@ void drawrooms(long daposx, long daposy, long daposz,
 	cosviewingrangeglobalang = mulscale16(cosglobalang,viewingrange);
 	sinviewingrangeglobalang = mulscale16(singlobalang,viewingrange);
 
-	if ((xyaspect != oxyaspect) || (xdimen != oxdimen) || (viewingrange != oviewingrange))
-		dosetaspect();
+    
+    if ((xyaspect != oxyaspect) || (xdimen != oxdimen) || (viewingrange != oviewingrange)) {
+        dosetaspect();
+    }
 
 	//clearbufbyte(&gotsector[0],(long)((numsectors+7)>>3),0L);
 	Bmemset(&gotsector[0],0,(long)((numsectors+7)>>3));

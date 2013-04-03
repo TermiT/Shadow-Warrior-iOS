@@ -9,6 +9,10 @@
 #import "LWPauseMenu.h"
 #import "LWGameInstance.h"
 #import "build.h"
+#ifdef TESTING
+#import "TestFlight.h"
+#endif
+
 
 @implementation LWPauseMenu {
     
@@ -119,7 +123,7 @@ createDevButton(NSString *title, CGRect frame, id target, SEL sel) {
 
 - (void)dev_endLevel {
     [self.gameController hidePauseMenu:^{
-        [gameInstance noclip];
+        [gameInstance endLevel];
     }];
 }
 
@@ -137,6 +141,9 @@ createDevButton(NSString *title, CGRect frame, id target, SEL sel) {
 
 - (void)dev_feedback {
     if (IS_IPAD()) {
+#ifdef TESTING
+        [TestFlight openFeedbackView];
+#endif
     } else {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Submit feedback" message:@"Please describe the issue:" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"OK", nil];
         alert.alertViewStyle = UIAlertViewStylePlainTextInput;
@@ -153,6 +160,9 @@ createDevButton(NSString *title, CGRect frame, id target, SEL sel) {
 -(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
     if (buttonIndex != alertView.cancelButtonIndex) {
         UITextField * textField = [alertView textFieldAtIndex:0];
+        #ifdef TESTING
+        [TestFlight submitFeedback:textField.text];
+    #endif
     }
 }
 

@@ -247,6 +247,20 @@ void scriptfile_preparse (scriptfile *sf, char *tx, long flen)
 	sf->eof = &sf->textbuf[nflen-1];
 }
 
+char * scripttxt_fromfile(char *file) {
+    long f_size;
+    char* code;
+    size_t code_s, result;
+    FILE* fp = fopen(file, "r");
+    fseek(fp, 0, SEEK_END);
+    f_size = ftell(fp); /* This returns 29696, but file is 85 bytes */
+    fseek(fp, 0, SEEK_SET);
+    code_s = sizeof(char) * f_size;
+    code = malloc(code_s);
+    result = fread(code, 1, f_size, fp);
+    return code;
+}
+
 scriptfile *scriptfile_fromfile(char *fn)
 {
 	int fp;

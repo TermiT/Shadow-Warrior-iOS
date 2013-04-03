@@ -2,48 +2,46 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>controls.scheme.ScreenTap</key>
-	<dict>
-		<key>tag1001</key>
-		<string>{{445, 222}, {48, 48}}</string>
-		<key>tag1002</key>
-		<string>{{390, 192}, {38, 38}}</string>
-		<key>tag1003</key>
-		<string>{{509, 188}, {38, 38}}</string>
-		<key>tag1004</key>
-		<string>{{513, 277.5}, {38, 38}}</string>
-		<key>tag1005</key>
-		<string>{{391, 276}, {38, 38}}</string>
-		<key>tag1006</key>
-		<string>{{11.5, 196.5}, {100, 100}}</string>
-	</dict>
 	<key>controls.scheme.Classic</key>
 	<dict>
 		<key>tag1001</key>
-		<string>{{445, 222}, {48, 48}}</string>
+		<string>{{425, 221.5}, {64, 64}}</string>
 		<key>tag1002</key>
-		<string>{{390, 192}, {38, 38}}</string>
+		<string>{{356, 194.5}, {38, 38}}</string>
 		<key>tag1003</key>
 		<string>{{509, 188}, {38, 38}}</string>
 		<key>tag1004</key>
 		<string>{{513, 277.5}, {38, 38}}</string>
 		<key>tag1005</key>
-		<string>{{391, 276}, {38, 38}}</string>
+		<string>{{360, 273}, {38, 38}}</string>
 		<key>tag1006</key>
 		<string>{{11.5, 196.5}, {100, 100}}</string>
+	</dict>
+	<key>controls.scheme.ScreenTap</key>
+	<dict>
+		<key>tag1001</key>
+		<string>{{420, 216}, {64, 64}}</string>
+		<key>tag1002</key>
+		<string>{{355.5, 190.5}, {38, 38}}</string>
+		<key>tag1003</key>
+		<string>{{509, 188}, {38, 38}}</string>
+		<key>tag1004</key>
+		<string>{{513, 277.5}, {38, 38}}</string>
+		<key>tag1005</key>
+		<string>{{358.5, 276}, {38, 38}}</string>
 	</dict>
 	<key>controls.scheme.VirtualSticks</key>
 	<dict>
 		<key>tag1001</key>
-		<string>{{404, 215}, {48, 48}}</string>
+		<string>{{381.5, 211.5}, {64, 64}}</string>
 		<key>tag1002</key>
-		<string>{{432, 167.5}, {38, 38}}</string>
+		<string>{{526.5, 72.5}, {38, 38}}</string>
 		<key>tag1003</key>
-		<string>{{521, 161}, {38, 38}}</string>
+		<string>{{131, 188.5}, {38, 38}}</string>
 		<key>tag1004</key>
-		<string>{{522, 278}, {38, 38}}</string>
+		<string>{{130, 269}, {38, 38}}</string>
 		<key>tag1005</key>
-		<string>{{434, 276.5}, {38, 38}}</string>
+		<string>{{480.5, 73}, {38, 38}}</string>
 		<key>tag1006</key>
 		<string>{{21, 191.5}, {100, 100}}</string>
 		<key>tag1007</key>

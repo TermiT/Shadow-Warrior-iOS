@@ -6,7 +6,9 @@
 	<dict/>
 	<key>Non-Consumables</key>
 	<array>
-		<string>com.blah</string>
+		<string>com.generalarcade.lowang.fullgame</string>
+		<string>com.generalarcade.lowang.wantondestruction</string>
+		<string>com.generalarcade.lowang.twindragon</string>
 	</array>
 	<key>Subscriptions</key>
 	<dict/>

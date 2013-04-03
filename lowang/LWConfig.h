@@ -25,7 +25,10 @@ void detectDevice(void);
 @property (nonatomic, retain) NSString *controlScheme;
 @property (nonatomic, assign) float aimSensitivity;
 @property (nonatomic, assign) int lastLevel;
+@property (nonatomic, assign) int tdlastLevel;
+@property (nonatomic, assign) int wdlastLevel;
 @property (nonatomic, assign) float hudTransparency;
+@property (nonatomic, assign) int saveGameType;
 @property (nonatomic, assign) BOOL enableMusic;
 @property (nonatomic, assign) BOOL enableCrosshair;
 @property (nonatomic, assign) BOOL enableVerticalAim;
@@ -37,6 +40,6 @@ void detectDevice(void);
 - (void)setSchemeConfig:(NSString *)schemeName config:(NSDictionary *)config;
 
 - (void)registerDefaults;
-
+- (void) resetControls;
 - (void)dumpSettings;
 @end

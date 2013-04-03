@@ -119,10 +119,10 @@ VOID WeaponCheat(PLAYERp pp, char *cheat_string)
 
         // ALL WEAPONS
         //if (!SW_SHAREWARE)
-        if (isFullGame)
+//        if (isFullGame)
             p->WpnFlags = 0xFFFFFFFF;
-	    else
-            p->WpnFlags = 0x0000207F;  // Disallows high weapon cheat in shareware
+//	    else
+//            p->WpnFlags = 0x0000207F;  // Disallows high weapon cheat in shareware
 
         for (i = 0; i < SIZ(p->WpnAmmo); i++)
             {

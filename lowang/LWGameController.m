@@ -29,10 +29,16 @@
 #import "LWStoreView.h"
 #import "MKStoreManager.h"
 #import "SVProgressHUD.h"
+#import "LWGameSelectMenu.h"
+#import "LWDownloadView.h"
+#import "SSZipArchive.h"
+#import "sys_iphone.h"
 
 @interface LWGameController () {
     NSMutableArray *menuStack;
 }
+
+@property (retain, nonatomic) MKNetworkEngine * downloadEngine;
 @property (retain, nonatomic) IBOutlet UIImageView *menuBackground;
 
 @property (retain, nonatomic) IBOutlet UIImageView *logo3DRealms;
@@ -55,6 +61,8 @@
 @property (retain, nonatomic) IBOutlet LWAboutMenu *aboutMenu;
 @property (retain, nonatomic) IBOutlet LWMenuView *creditsMenu;
 @property (retain, nonatomic) IBOutlet LWStoreView *storeView;
+@property (retain, nonatomic) IBOutlet LWGameSelectMenu *gameSelectMenu;
+@property (retain, nonatomic) IBOutlet LWDownloadView *downloadView;
 
 @end
 
@@ -62,6 +70,8 @@
     int showMenuIfReadyCounter;
     CGRect contentBounds;
 }
+
+#define kCDN_URL @"331305059dd9476c6652-2c472e79cc18c601cd320b087ff98967.r79.cf2.rackcdn.com"
 
 - (id)init {
     NSString * nibName = @"LWGameController~iPad";
@@ -71,22 +81,22 @@
         menuStack = [[NSMutableArray alloc]init];
         showMenuIfReadyCounter = 0;
     }
-    return self;    
+    return self;
 }
 
-#if ENABLE_DEV_BUTTONS
+#if ENABLE_DEV_BUTTONS1
 
 UIButton*
 createDevButton(NSString *title, CGRect frame, id target, SEL sel);
 
 - (void) addDebugButtons {
     CGRect rc = { 10, 10, 160, 40 };
-
+    
     [self.view addSubview:createDevButton(@"Shadow Warrior", rc, self, @selector(dev_startSW))];
-
+    
     rc.origin.y += 50;
     [self.view addSubview:createDevButton(@"Twin Dragon", rc, self, @selector(dev_startTD))];
-
+    
     rc.origin.y += 50;
     [self.view addSubview:createDevButton(@"Wanton Destruction", rc, self, @selector(dev_startWD))];
 }
@@ -125,15 +135,16 @@ createDevButton(NSString *title, CGRect frame, id target, SEL sel);
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(animationStopped:) name:kLWNotifyAnimStopped object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onGameOver) name:kLWGameOver object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onSharewareGameOver) name:kLWSharewareGameOver object:nil];
-
+    
     [self.navigationController setNavigationBarHidden:YES];
     [self.view addSubview:self.eaglView];
     [self.view addSubview:self.mainMenuView];
     [gameInstance startEngine];
-
-    #if ENABLE_DEV_BUTTONS
+    _downloadEngine = [[MKNetworkEngine alloc] initWithHostName:kCDN_URL];
+        
+#if ENABLE_DEV_BUTTONS1
     [self addDebugButtons];
-    #endif
+#endif
     // Do any additional setup after loading the view from its nib.
 }
 
@@ -155,7 +166,7 @@ cutLeftPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
     UIGraphicsBeginImageContextWithOptions(CGSizeMake(top>bottom?top:bottom, imageSize.height), NO, [UIScreen mainScreen].scale);
     CGContextRef ctx = UIGraphicsGetCurrentContext();
     CGContextScaleCTM( ctx, 1.0f, 1.0f );
-
+    
     CGContextBeginPath(ctx);
     CGContextMoveToPoint(ctx, 0, 0);
     CGContextAddLineToPoint(ctx, top, 0);
@@ -164,9 +175,9 @@ cutLeftPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
     CGContextAddLineToPoint(ctx, 0, 0);
     CGContextClosePath(ctx);
     CGContextClip(ctx);
-
+    
     [src drawAtPoint:CGPointMake(0, 0)];
-
+    
     r = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     return r;
@@ -177,11 +188,11 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
     UIImage *r = nil;
     CGSize imageSize = src.size;
     CGFloat offs = top<bottom?top:bottom;
-
+    
     UIGraphicsBeginImageContextWithOptions(CGSizeMake(imageSize.width - offs, imageSize.height), NO, [UIScreen mainScreen].scale);
     CGContextRef ctx = UIGraphicsGetCurrentContext();
     CGContextScaleCTM( ctx, 1.0f, 1.0f );
-
+    
     CGContextBeginPath(ctx);
     CGContextMoveToPoint(ctx, top - offs, 0);
     CGContextAddLineToPoint(ctx, imageSize.width - offs, 0);
@@ -190,9 +201,9 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
     CGContextAddLineToPoint(ctx, top - offs, 0);
     CGContextClosePath(ctx);
     CGContextClip(ctx);
-
+    
     [src drawAtPoint:CGPointMake(-offs, 0)];
-
+    
     r = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     return r;
@@ -200,33 +211,33 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
 
 - (void)startSplashAnimation {
     CGRect bounds = contentBounds;
-
+    
     UIView *redBackground = [[[UIView alloc] initWithFrame:bounds] autorelease];
     redBackground.backgroundColor = [UIColor colorWithRed:153/255.0 green:33/255.0 blue:31/255.0 alpha:1.0];
     [self.view addSubview:redBackground];
-
+    
     NSString *defaultImageName = is_iPad ? @"Default-Landscape" : (is_iPhone5 ? @"Default-568h" : @"Default");
     UIImageView *splashImageView = [[[UIImageView alloc] initWithImage:[UIImage imageNamed:defaultImageName]] autorelease];
-
+    
     if (!is_iPad) {
         splashImageView.transform = CGAffineTransformMakeRotation((CGFloat) (-M_PI/2));
         splashImageView.center = CGPointMake(contentBounds.size.width/2, contentBounds.size.height/2);
     }
-
+    
     [self.view addSubview:splashImageView];
-
+    
     UIImageView *_3DRealmsLogo = [[[UIImageView alloc] initWithImage:[UIImage imageNamed:@"3DRealms"]] autorelease];
     _3DRealmsLogo.alpha = 0;
     [self.view addSubview:_3DRealmsLogo];
     _3DRealmsLogo.center = is_iPad ? CGPointMake(267, 450) :
-            is_iPhone5 ? CGPointMake(130+44, 204) : CGPointMake(130, 204);
-
+    is_iPhone5 ? CGPointMake(130+44, 204) : CGPointMake(130, 204);
+    
     UIImageView *GALogo = [[[UIImageView alloc] initWithImage:[UIImage imageNamed:@"GAlogo"]] autorelease];
     GALogo.alpha = 0;
     [self.view addSubview:GALogo];
     GALogo.center = is_iPad ? CGPointMake(771, 450) :
-            is_iPhone5 ? CGPointMake(370+44, 204) : CGPointMake(370, 204);
-
+    is_iPhone5 ? CGPointMake(370+44, 204) : CGPointMake(370, 204);
+    
     [UIView animateWithDuration:1.0 animations:^{
         CGRect rc = splashImageView.frame;
         rc.origin.y -= is_iPad ? 250 : 105;
@@ -241,36 +252,36 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
             UIImage *snapshot = makeViewSnapshot(self.view);
             UIImage *leftPart = cutLeftPartOfImage(snapshot, halfWidth+cutOffset, halfWidth-cutOffset);
             UIImage *rightPart = cutRightPartOfImage(snapshot, halfWidth+cutOffset, halfWidth-cutOffset);
-
+            
             CGRect rc;
-
+            
             UIImageView *leftPartView = [[[UIImageView alloc] initWithImage:leftPart] autorelease];
             rc = leftPartView.frame;
             rc.origin.x = 0;
             leftPartView.frame = rc;
-
+            
             UIImageView *rightPartView = [[[UIImageView alloc] initWithImage:rightPart] autorelease];
             rc = rightPartView.frame;
             rc.origin.x = halfWidth-cutOffset;
             rightPartView.frame = rc;
-
+            
             UIView *bottomWhite = [[[UIView alloc] initWithFrame:self.view.bounds] autorelease];
             bottomWhite.backgroundColor = [UIColor whiteColor];
-
+            
             UIView *topWhite = [[[UIView alloc] initWithFrame:self.view.bounds] autorelease];
             topWhite.backgroundColor = [UIColor whiteColor];
-
+            
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t) (1.5 * NSEC_PER_SEC)), dispatch_get_current_queue(), ^{
-
+                
                 NSString *filename = [[NSBundle mainBundle] pathForResource:@"sword" ofType:@"mp3"];
                 NSURL *url = [NSURL fileURLWithPath:filename];
                 AVAudioPlayer *avplayer = [[AVAudioPlayer alloc] initWithContentsOfURL:url  error:nil];
                 [avplayer play];
-
+                
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t) (1.5 * NSEC_PER_SEC)), dispatch_get_current_queue(), ^{
                     [avplayer release];
                 });
-
+                
                 [redBackground removeFromSuperview];
                 [splashImageView removeFromSuperview];
                 [_3DRealmsLogo removeFromSuperview];
@@ -282,35 +293,35 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
                 [UIView animateWithDuration:0.5
                                       delay:0
                                     options:UIViewAnimationOptionCurveEaseIn
-                        animations:^{
-                            CGRect rc;
-
-                            rc = leftPartView.frame;
-                            rc.origin.x -= rc.size.width;
-                            leftPartView.frame = rc;
-
-                            rc = rightPartView.frame;
-                            rc.origin.x += rc.size.width;
-                            rightPartView.frame = rc;
-
-                            bottomWhite.alpha = 0;
-                        } completion:^(BOOL finished) {
-                    [leftPartView removeFromSuperview];
-                    [rightPartView removeFromSuperview];
-                    [bottomWhite removeFromSuperview];
-                }];
-
+                                 animations:^{
+                                     CGRect rc;
+                                     
+                                     rc = leftPartView.frame;
+                                     rc.origin.x -= rc.size.width;
+                                     leftPartView.frame = rc;
+                                     
+                                     rc = rightPartView.frame;
+                                     rc.origin.x += rc.size.width;
+                                     rightPartView.frame = rc;
+                                     
+                                     bottomWhite.alpha = 0;
+                                 } completion:^(BOOL finished) {
+                                     [leftPartView removeFromSuperview];
+                                     [rightPartView removeFromSuperview];
+                                     [bottomWhite removeFromSuperview];
+                                 }];
+                
                 [UIView animateWithDuration:0.2
                                       delay:0
                                     options:UIViewAnimationOptionCurveEaseIn
-                        animations:^{
-                            topWhite.alpha = 0;
-                        } completion:^(BOOL finished) {
-                    [topWhite removeFromSuperview];
-                    [self showMenuIfReady];
-                }];
+                                 animations:^{
+                                     topWhite.alpha = 0;
+                                 } completion:^(BOOL finished) {
+                                     [topWhite removeFromSuperview];
+                                     [self showMenuIfReady];
+                                 }];
             });
-
+            
         }];
     }];
 }
@@ -340,7 +351,7 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
 }
 
 - (void)showInfoMessage:(NSNotification*)notification {
-//    NSString *message = (NSString*)notification.object;
+    //    NSString *message = (NSString*)notification.object;
 }
 
 - (void)playerDied {
@@ -350,14 +361,16 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
 }
 
 - (void) levelStarted:(NSNotification *)notification {
+    extern int game_type;
     NSNumber *level = notification.object;
-    if (gameConfig.lastLevel < level.intValue) {
+    if (gameConfig.lastLevel < level.intValue && game_type == GAME_SHADOW_WARRIOR) {
         gameConfig.lastLevel = level.intValue;
     }
     [_loadingView removeFromSuperview];
     [self showHudView];
     [self.view addSubview:_controlSchemeView];
     [_controlSchemeView updateView];
+    [Flurry logEvent:[NSString stringWithFormat:@"StartedLevel%d", level.intValue]];
 }
 
 - (void)showHudView {
@@ -401,6 +414,7 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
     [_hudView removeFromSuperview];
     [menuStack addObject:_mainMenu];
     [self presentCreditsMenu];
+    [Flurry logEvent:@"FinishedFullGame"];
 }
 
 - (void)onSharewareGameOver {
@@ -408,7 +422,8 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
     [_pauseView removeFromSuperview];
     [_hudView removeFromSuperview];
     [self presentMainMenu];
-    [self presentStoreView];
+    [self presentStoreView:GAME_SHADOW_WARRIOR];
+    [Flurry logEvent:@"FinishedSharewareGame"];
 }
 
 #pragma mark - Menu
@@ -537,7 +552,7 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
         [self hideMenu:v
             completion:^(BOOL finished) {
                 [v removeFromSuperview];
-        }];
+            }];
         [menuStack removeLastObject];
     }
     if (menuStack.count != 0) {
@@ -557,7 +572,7 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
 - (void) presentMainMenu {
     [_mainMenu updateView];
     [self presentMenu:_mainMenu];
-
+    
 }
 
 - (void) presentControlSchemeEditor {
@@ -568,10 +583,16 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
     transition.subtype = kCATransitionFromTop;
     [self.navigationController.view.layer addAnimation:transition forKey:kCATransition];
     [self.navigationController pushViewController:editor animated:NO];
+    [Flurry logEvent:@"OpenedControlSchemeEditor"];
 }
 
 - (void) presentSettings {
     [self presentMenu:_settingsMenu];
+    [Flurry logEvent:@"OpenedSettings"];
+}
+
+- (void) presentGameSelectMenu {
+    [self presentMenu:_gameSelectMenu];
 }
 
 - (void) presentSkillSelectMenu {
@@ -580,14 +601,17 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
 
 - (void) presentControlsMenu {
     [self presentMenu:_controlsMenu];
+    [Flurry logEvent:@"OpenedControls"];
 }
 
 - (void) presentAboutMenu {
     [self presentMenu:_aboutMenu];
+    [Flurry logEvent:@"OpenedAbout"];
 }
 
 - (void) presentCoolStuffMenu {
     [self presentMenu:_coolStuffMenu];
+    [Flurry logEvent:@"OpenedCoolStuff"];
 }
 
 - (void) presentCreditsMenu {
@@ -595,6 +619,7 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
         AVPlayer_CD_Play(14, 1);
     }
     [self presentMenu:_creditsMenu];
+    [Flurry logEvent:@"OpenedCredits"];
 }
 
 - (void) switchToMainMenu {
@@ -620,6 +645,9 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
 
 - (void) doSave {
     [_pauseView hideMenu:^(BOOL finished) {
+        gameConfig = [LWConfig sharedConfig];
+        extern int game_type;
+        gameConfig.saveGameType = game_type;
         gameInstance.paused = NO;
         [gameInstance saveGame:0];
         [self showHudView];
@@ -630,6 +658,10 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
 
 - (void) doLoad {
     [_pauseView hideMenu:^(BOOL finished) {
+        [self.view addSubview:_loadingView];
+        gameConfig = [LWConfig sharedConfig];
+        [gameInstance setGameType:gameConfig.saveGameType];
+        [_loadingView removeFromSuperview];
         gameInstance.paused = NO;
         [gameInstance loadGame:0];
         [self showHudView];
@@ -666,12 +698,14 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
         }
     } else {
         [self.view addSubview:_loadingView];
+        gameConfig = [LWConfig sharedConfig];
+        [gameInstance setGameType:gameConfig.saveGameType];
         [self hideMenu:self.mainMenu completion:^(BOOL finished) {
             self.mainMenuView.hidden = YES;
             [self resetMenu];
             [gameInstance loadGame:0];
         }];
-
+        
     }
 }
 
@@ -680,6 +714,7 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
         self.mainMenuView.hidden = YES;
         [self resetMenu];
         [self.view addSubview:_loadingView];
+        [gameInstance setGameType:_gameSelectMenu.game];
         [gameInstance startGame:_skillSelectMenu.level skill:_skillSelectMenu.skill];
     }];
 }
@@ -709,8 +744,9 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
 
 - (void) presentCheatsMenu {
     [_pauseView hideMenu:^(BOOL finished) {
-        [_pauseView showCheatsMenu]; 
+        [_pauseView showCheatsMenu];
     }];
+    [Flurry logEvent:@"OpenedCheatMenu"];
 }
 
 - (void)hideCheatMenu {
@@ -720,13 +756,118 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
     
 }
 
-- (void) presentStoreView {
+- (void)presentDownloadView:(NSString *)title {
+    _downloadView.title.text = title;
+    [self.view addSubview:_downloadView];
+    [_downloadView updateView];
+}
+
+- (void)hideDownloadView {
+    [_downloadView removeFromSuperview];
+}
+
+- (BOOL)isBundleAvailable:(NSString *)featureID {
+    if ([featureID isEqualToString:kInAppFullGame]) return YES;
+    NSString *documentDir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+    
+    NSString * path = nil;
+    if ([featureID isEqualToString:kInAppTwinDragon]) {
+        path = [documentDir stringByAppendingPathComponent:[NSString stringWithFormat:@"%s",GAME_TWIN_DRAGON_DIR]];
+    } else {
+        path = [documentDir stringByAppendingPathComponent:[NSString stringWithFormat:@"%s",GAME_WANTON_DESTRUCTION_DIR]];
+    }
+    return [[NSFileManager defaultManager] fileExistsAtPath:path];
+}
+
+- (NSString *)futureIDForGameType:(NSUInteger )game {
+    switch (game) {
+        case GAME_SHADOW_WARRIOR:
+            return kInAppFullGame;
+            break;
+        case GAME_TWIN_DRAGON:
+            return kInAppTwinDragon;
+            break;
+        case GAME_WANTON_DESTRUCTION:
+            return kInAppWantonDestruction;
+            break;
+        default:
+            return nil;
+            break;
+    }
+}
+
+- (BOOL)isFeaturePurchased:(NSString *)featureID {
+    return [MKStoreManager isFeaturePurchased:featureID];
+}
+
+- (void)downloadBundle:(NSString *)featureID finished:(void(^)(void))finished {
+    NSDictionary * paths = @{
+    kInAppTwinDragon        : @"com.generalarcade.lowang.twindragon.zip",
+    kInAppWantonDestruction : @"com.generalarcade.lowang.wantondestruction.zip",
+    };
+    if ([self isBundleAvailable:featureID]) {
+        finished();
+    } else {
+        NSString * featureName = [[MKStoreManager sharedManager].titlesDictionary objectForKey:featureID];
+        if (featureName == nil) featureName = @"DLC";
+        NSString * outputPath = [NSTemporaryDirectory() stringByAppendingPathComponent:featureID];
+        MKNetworkOperation * op =  [_downloadEngine operationWithPath:[paths objectForKey:featureID] params:nil httpMethod:@"GET" ssl:NO];
+        [op setCompletionBlock:^{
+            if (op.error == nil) {
+                NSLog(@"Download complited");
+                BOOL unziped = [SSZipArchive unzipFileAtPath:outputPath toDestination:[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0]];
+                NSLog(@"unziped: %d", unziped);
+                if (unziped) {
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [self hideDownloadView];
+                        [self showMessage:[NSString stringWithFormat:@"\"%@\" successfully installed", featureName] withTitle:@"Lo Wang Store"];
+                        finished();
+                    });
+                } else {
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [self hideDownloadView];
+                        NSLog(@"Unzipping error");
+//                        [self showMessage:@"Unzipping error. Please try again." withTitle:@"Error"];
+                    });
+                }
+            } else {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self hideDownloadView];
+                    [self showMessage:op.error.localizedDescription withTitle:@"Error"];
+                });
+            }
+        }];
+        [op onDownloadProgressChanged:^(double progress) {
+            NSLog(@"Donwload progress: %f", progress);
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [_downloadView updateProgress:(float)progress];
+            });
+        }];
+        [op setShouldShowLocalNotificationOnError:YES];
+        [op setFreezable:YES];
+        [op addDownloadStream:[NSOutputStream
+                               outputStreamToFileAtPath:outputPath
+                               append:NO]];
+        [_downloadEngine enqueueOperation:op];
+        [self presentDownloadView:featureName];
+    }
+}
+
+
+- (void) presentStoreView:(NSUInteger)selectedGameIndex {
     [self.view addSubview:_storeView];
+    _storeView.selectedFeatureIndex = selectedGameIndex;
     [_storeView updateView];
+    [Flurry logEvent:@"OpenedStore"];
 }
 
 - (void) hideStoreView {
     [_storeView removeFromSuperview];
+}
+
+- (void)cancelAllDownloads {
+    [_downloadEngine cancelAllOperations];
+    [self showMessage:@"Download canceled" withTitle:@"Warning"];
 }
 
 - (void)buyFullGame {
@@ -738,24 +879,53 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
         if (_skillSelectMenu != nil) {
             [_skillSelectMenu updateView];
         }
+        [Flurry logEvent:@"BoughtFullGame"];
         [self hideStoreView];
         [SVProgressHUD dismiss];
     } onCancelled:^{
-//        [self showMessage:@"Purchase canceled" withTitle:@"Lo Wang Store"];
         [SVProgressHUD dismiss];
     }];
+}
+
+- (void)buyFeature:(NSString *)featureID {
+    [SVProgressHUD showWithMaskType:SVProgressHUDMaskTypeBlack];
+    [[MKStoreManager sharedManager] buyFeature:featureID onComplete:^(NSString *purchasedFeature, NSData *purchasedReceipt, NSArray *availableDownloads) {
+        if ([featureID isEqualToString:kInAppFullGame]) {
+            extern int isFullGame;
+            isFullGame = 1;
+        }
+        NSString * purchaseTitle = [[MKStoreManager sharedManager].titlesDictionary objectForKey:purchasedFeature];
+        NSString * message = [NSString stringWithFormat:@"Thank you for purchasing \"%@\"! Enjoy!", purchaseTitle];
+        [self showMessage:message withTitle:@"Lo Wang Store"];
+        if (_skillSelectMenu != nil) {
+            [_skillSelectMenu updateView];
+        }
+        [Flurry logEvent:[NSString stringWithFormat:@"Bought %@", [purchasedFeature stringByReplacingOccurrencesOfString:@" " withString:@""]]];
+        [self hideStoreView];
+        [SVProgressHUD dismiss];
+        if (![featureID isEqualToString:kInAppFullGame]) {
+            [self downloadBundle:purchasedFeature finished:^{
+                
+            }];
+        }
+    } onCancelled:^{
+        [SVProgressHUD dismiss];
+    }];
+    
 }
 
 - (void)restorePurchases {
     [SVProgressHUD showWithMaskType:SVProgressHUDMaskTypeBlack];
     [[MKStoreManager sharedManager] restorePreviousTransactionsOnComplete:^{
         extern int isFullGame;
-        //        isFullGame = (int)[MKStoreManager isFeaturePurchased:kInAppFullGame];
-        isFullGame = 1;
+        isFullGame = (int)[MKStoreManager isFeaturePurchased:kInAppFullGame];
+        //        isFullGame = 1;
+        //check here restore staff
         [self showMessage:@"All purchases successfully restored!" withTitle:@"Lo Wang Store"];
         if (_skillSelectMenu != nil) {
             [_skillSelectMenu updateView];
         }
+        [Flurry logEvent:@"RestoredPurchases"];
         [self hideStoreView];
         [SVProgressHUD dismiss];
     } onError:^(NSError *error) {
@@ -787,6 +957,11 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
         [self startSplashAnimation];
     }
 }
+
+- (int)selectedGame {
+    return _gameSelectMenu.game;
+}
+
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
@@ -799,6 +974,7 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
 
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [_downloadEngine release];
     [_logo3DRealms release];
     [_logoGeneralArcade release];
     [_mainMenu release];
@@ -823,9 +999,12 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
     [_aboutMenu release];
     [_creditsMenu release];
     [_storeView release];
+    [_gameSelectMenu release];
+    [_downloadView release];
     [super dealloc];
 }
 - (void)viewDidUnload {
+    [self setDownloadEngine:nil];
     [self setLogo3DRealms:nil];
     [self setLogoGeneralArcade:nil];
     [self setMainMenu:nil];
@@ -849,6 +1028,8 @@ cutRightPartOfImage(UIImage *src, CGFloat top, CGFloat bottom) {
     [self setAboutMenu:nil];
     [self setCreditsMenu:nil];
     [self setStoreView:nil];
+    [self setGameSelectMenu:nil];
+    [self setDownloadView:nil];
     [super viewDidUnload];
 }
 
